@@ -326,6 +326,20 @@ void teaser::ScaleInliersSelector::solveForScale(
 
   // element-wise AND using component-wise product (Eigen 3.2 compatible)
   *inliers = inliers_forward.cwiseProduct(inliers_reverse);
+
+  //
+  // Alternative inlier determination
+  //
+
+  // normalize distance difference
+  // Eigen::Matrix<double, 1, Eigen::Dynamic> eta = (v1_dist.array() + v2_dist.array()) / 2;
+  // Eigen::Matrix<double, 1, Eigen::Dynamic> c = (v1_dist.array() - v2_dist.array()) / eta.array();
+
+  // do not normalize distance
+  // // Eigen::Matrix<double, 1, Eigen::Dynamic> c = v1_dist.array() - v2_dist.array();
+
+  // distance preserving edges (i.e., small enough distance differences) are considered inliers
+  // *inliers = c.array().abs() <= beta;
 }
 
 void teaser::TLSTranslationSolver::solveForTranslation(
