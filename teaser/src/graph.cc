@@ -6,6 +6,8 @@
  * See LICENSE for the license information
  */
 
+#include <iostream>
+
 #include "teaser/graph.h"
 #include "pmc/pmc.h"
 
@@ -86,8 +88,10 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
 
   // lower-bound of max clique
   if (in.lb == 0 && in.heu_strat != "0") { // skip if given as input
+    const auto old_buffer = std::cout.rdbuf(nullptr);
     pmc::pmc_heu maxclique(G, in);
     in.lb = maxclique.search(G, C);
+    std::cout.rdbuf(old_buffer);
   }
 
   assert(in.lb != 0);
@@ -111,6 +115,7 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
     // R. A. Rossi, D. F. Gleich, and A. H. Gebremedhin, “Parallel Maximum Clique Algorithms with
     // Applications to Network Analysis,” SIAM J. Sci. Comput., vol. 37, no. 5, pp. C589–C616, Jan.
     // 2015.
+    const auto old_buffer = std::cout.rdbuf(nullptr);
     if (G.num_vertices() < in.adj_limit) {
       G.create_adj();
       pmc::pmcx_maxclique finder(G, in);
@@ -119,6 +124,7 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
       pmc::pmcx_maxclique finder(G, in);
       finder.search(G, C);
     }
+    std::cout.rdbuf(old_buffer);
   }
 
   return C;
