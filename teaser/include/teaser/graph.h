@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include <omp.h>
+
 #include <Eigen/Core>
 
 #include "teaser/macros.h"

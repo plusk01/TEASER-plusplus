@@ -70,6 +70,9 @@ std::vector<int> teaser::MaxCliqueSolver::callPMC(pmc::pmc_graph& G) {
   in.heu_strat = "kcore";
   in.vertex_search_order = "deg";
 
+  TEASER_DEBUG_INFO_MSG("Using " << in.threads << " threads");
+  omp_set_num_threads(in.threads); // keep in sync with PMC
+
   // vector to represent max clique
   vector<int> C;
 
