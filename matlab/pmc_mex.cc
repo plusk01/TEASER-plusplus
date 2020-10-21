@@ -28,11 +28,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   // nrhs   number of inputs
   // prhs   array poplulated by inputs (data passed from matlab)
 
-  if (nrhs != 2) {
-    mexErrMsgIdAndTxt("pmc:nargin", "Two arguments (type, data) required.");
+  if (nrhs != 2 && nrhs != 3) {
+    mexErrMsgIdAndTxt("pmc:nargin", "Two or three arguments (type, data, threads) required.");
   }
 
   teaser::MaxCliqueSolver::Params params;
+  if (nrhs >= 3) params.num_threads = *mxGetPr(prhs[2]);
   teaser::MaxCliqueSolver clique_solver(params);
   std::vector<int> max_clique;
 

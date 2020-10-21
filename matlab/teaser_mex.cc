@@ -29,6 +29,7 @@ enum class INPUT_PARAMS : int {
   rotation_cost_threshold = 8,
   inlier_selection_algorithm = 9,
   kcore_heuristic_threshold = 10,
+  max_clique_threads = 11,
 };
 
 enum class OUTPUT_PARAMS : int {
@@ -59,6 +60,7 @@ const std::map<INPUT_PARAMS, mexTypeCheckFunction> INPUT_PARMS_MAP{
     {INPUT_PARAMS::rotation_cost_threshold, &isRealDoubleScalar},
     {INPUT_PARAMS::inlier_selection_algorithm, &isRealDoubleScalar},
     {INPUT_PARAMS::kcore_heuristic_threshold, &isRealDoubleScalar},
+    {INPUT_PARAMS::max_clique_threads, &isRealDoubleScalar},
 };
 const std::map<OUTPUT_PARAMS, mexTypeCheckFunction> OUTPUT_PARMS_MAP{
     {OUTPUT_PARAMS::s_est, &isRealDoubleScalar},
@@ -102,6 +104,7 @@ const std::map<OUTPUT_PARAMS, mexTypeCheckFunction> OUTPUT_PARMS_MAP{
  *                              then the nodes with core number == max core number are directly
  *                              returned. If not, then the algorithm will proceed to use PMC to find
  *                              an exact clique.
+ * - max_clique_threads: Sets the number of threads to use for PMC (affects all of openmp)
  *
  * Output:
  * - s_est estimated scale (scalar)
@@ -166,6 +169,8 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
       static_cast<int>(*mxGetPr(prhs[toUType(INPUT_PARAMS::inlier_selection_algorithm)]));
   auto kcore_heuristic_threshold =
       static_cast<double>(*mxGetPr(prhs[toUType(INPUT_PARAMS::kcore_heuristic_threshold)]));
+  auto max_clique_threads =
+      static_cast<double>(*mxGetPr(prhs[toUType(INPUT_PARAMS::max_clique_threads)]));
 
   // Prepare the TEASER++ solver for solving registration problem
   teaser::RobustRegistrationSolver::Params params;
@@ -176,6 +181,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
   params.rotation_gnc_factor = rotation_gnc_factor;
   params.rotation_cost_threshold = rotation_cost_threshold;
   params.kcore_heuristic_threshold = kcore_heuristic_threshold;
+  params.max_clique_threads = max_clique_threads;
 
   switch (rotation_estimation_method) {
   case 0: { // GNC-TLS method

@@ -255,6 +255,11 @@ public:
      * Time limit on running the solver.
      */
     double time_limit = 3600;
+
+    /**
+     * Number of threads to use when running PMC
+     */
+    int num_threads = 12;
   };
 
   /**

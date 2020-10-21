@@ -54,7 +54,7 @@ std::vector<int> teaser::MaxCliqueSolver::callPMC(pmc::pmc_graph& G) {
   // TODO: Incorporate this to the constructor
   pmc::input in;
   in.algorithm = 0;
-  in.threads = 12;
+  in.threads = params_.num_threads;
   in.experiment = 0;
   in.lb = 0;
   in.ub = 0;

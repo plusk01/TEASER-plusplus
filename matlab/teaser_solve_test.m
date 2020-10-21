@@ -10,13 +10,14 @@ rot_max_iters = 100;
 rot_cost_threshold = 1e-12;
 inlier_arg = 0;
 kcore_thr = 0.5;
+threads = 12;
 
 % Test the MEX function
 [s, R, t, time_taken, inlier_graph, maxclique, rin, tin,...
 pmc_times, pmc_omegas, pmc_exact, pmc_input_info]...
     = teaser_solve_mex(src, dst, cbar2, ...
         noise_bound, estimate_scaling, rot_alg, rot_gnc_factor, ...
-        rot_max_iters, rot_cost_threshold, inlier_arg, kcore_thr);
+        rot_max_iters, rot_cost_threshold, inlier_arg, kcore_thr, threads);
 assert(s==1);
 assert(norm(R-eye(3)) < 1e-5);
 assert(norm(t-[1;0;1]) < 1e-5);

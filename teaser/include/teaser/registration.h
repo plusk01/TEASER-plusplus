@@ -470,6 +470,11 @@ public:
      * Time limit on running the max clique algorithm (in seconds).
      */
     double max_clique_time_limit = 3600;
+
+    /**
+     * Number of threads to use for PMC
+     */
+    int max_clique_threads = 12;
   };
 
   RobustRegistrationSolver() = default;
