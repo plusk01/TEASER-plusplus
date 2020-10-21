@@ -522,7 +522,7 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
     src_tims_map_rotation_.resize(2, max_clique_.size());
     dst_tims_map_rotation_.resize(2, max_clique_.size());
     for (size_t i = 0; i < max_clique_.size(); ++i) {
-      const auto& root = max_clique_[i];
+      const int root = max_clique_[i];
       int leaf;
       if (i != max_clique_.size() - 1) {
         leaf = max_clique_[i + 1];
