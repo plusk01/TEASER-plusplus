@@ -128,7 +128,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
     }
   }
 
-  mexPrintf("Arguments type checks passed.\n");
+  TEASER_DEBUG_MEX_MSG("Arguments type checks passed.\n");
   mexEvalString("drawnow;");
 
   // Prepare parameters
@@ -167,19 +167,19 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
 
   switch (rotation_estimation_method) {
   case 0: { // GNC-TLS method
-    mexPrintf("Use GNC-TLS for rotation estimation.\n");
+    TEASER_DEBUG_MEX_MSG("Use GNC-TLS for rotation estimation.\n");
     params.rotation_estimation_algorithm =
         teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
     break;
   }
   case 1: { // FGR method
-    mexPrintf("Use FGR for rotation estimation.\n");
+    TEASER_DEBUG_MEX_MSG("Use FGR for rotation estimation.\n");
     params.rotation_estimation_algorithm =
         teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::FGR;
     break;
   }
   default: {
-    mexPrintf("Rotation estimation method given does not exist. Use GNC-TLS instead.\n");
+    TEASER_DEBUG_MEX_MSG("Rotation estimation method given does not exist. Use GNC-TLS instead.\n");
     params.rotation_estimation_algorithm =
         teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
     break;
@@ -188,29 +188,29 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
 
   switch (inlier_selection_algorithm) {
   case 0: { // PMC_EXACT method
-    mexPrintf("Use PMC_EXACT for inlier selection.\n");
+    TEASER_DEBUG_MEX_MSG("Use PMC_EXACT for inlier selection.\n");
     params.inlier_selection_mode =
         teaser::RobustRegistrationSolver::INLIER_SELECTION_MODE::PMC_EXACT;
     break;
   }
   case 1: { // PMC_HEU method
-    mexPrintf("Use PMC_HEU for inlier selection.\n");
+    TEASER_DEBUG_MEX_MSG("Use PMC_HEU for inlier selection.\n");
     params.inlier_selection_mode = teaser::RobustRegistrationSolver::INLIER_SELECTION_MODE::PMC_HEU;
     break;
   }
   case 2: { // KCORE_HEU method
-    mexPrintf("Use KCORE_HEU for inlier selection.\n");
+    TEASER_DEBUG_MEX_MSG("Use KCORE_HEU for inlier selection.\n");
     params.inlier_selection_mode =
         teaser::RobustRegistrationSolver::INLIER_SELECTION_MODE::KCORE_HEU;
     break;
   }
   case 3: { // NONE
-    mexPrintf("No inlier selection step after scale pruning.\n");
+    TEASER_DEBUG_MEX_MSG("No inlier selection step after scale pruning.\n");
     params.inlier_selection_mode = teaser::RobustRegistrationSolver::INLIER_SELECTION_MODE::NONE;
     break;
   }
   default: {
-    mexPrintf("Unknown inlier selection algorithm given. Use PMC_EXACT instead.\n");
+    TEASER_DEBUG_MEX_MSG("Unknown inlier selection algorithm given. Use PMC_EXACT instead.\n");
     params.inlier_selection_mode =
         teaser::RobustRegistrationSolver::INLIER_SELECTION_MODE::PMC_EXACT;
     break;
@@ -219,7 +219,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
 
   teaser::RobustRegistrationSolver solver(params);
 
-  mexPrintf("Start TEASER++ solver.\n");
+  TEASER_DEBUG_MEX_MSG("Start TEASER++ solver.\n");
   mexEvalString("drawnow;");
 
   // Start the timer
@@ -236,7 +236,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
 
   auto solution = solver.getSolution();
 
-  mexPrintf("TEASER++ has found a solution in %f milliseconds.\n", t_e2e*1e3);
+  TEASER_DEBUG_MEX_MSG("TEASER++ has found a solution in %f milliseconds.\n", t_e2e*1e3);
   mexEvalString("drawnow;");
 
   // Populate outputs

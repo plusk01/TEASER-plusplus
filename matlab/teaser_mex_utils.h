@@ -14,6 +14,19 @@
 
 #include <Eigen/Core>
 
+#if defined(NDEBUG) && !defined(TEASER_DIAG_PRINT)
+// Use NOOP to turn off the defined debug macros
+#define TEASER_DEBUG_MEX_MSG(fmt, ...)                                                             \
+  do {                                                                                             \
+  } while (0)
+#else
+// Debug messages
+#define TEASER_DEBUG_MEX_MSG(fmt, ...)                                                             \
+  do {                                                                                             \
+    mexPrintf(fmt, ##__VA_ARGS__);                                                                 \
+  } while (0)
+#endif
+
 // Credit to Effective Modern C++ Item 10
 template <typename E> constexpr typename std::underlying_type<E>::type toUType(E e) noexcept {
   return static_cast<typename std::underlying_type<E>::type>(e);
@@ -61,7 +74,7 @@ void mexPointMatrixToEigenMatrix(const mxArray* pa,
                                  Eigen::Matrix<double, 3, Eigen::Dynamic>* eigen_matrix) {
   int rows = mxGetM(pa);
   int cols = mxGetN(pa);
-  mexPrintf("row: %d cols: %d \n", rows, cols);
+  TEASER_DEBUG_MEX_MSG("row: %d cols: %d \n", rows, cols);
   if (rows != 3)
     return;
   eigen_matrix->resize(rows, cols);
