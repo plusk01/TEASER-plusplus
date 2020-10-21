@@ -40,6 +40,10 @@ enum class OUTPUT_PARAMS : int {
   maxclique = 5,
   rotation_inliers = 6,
   translation_inliers = 7,
+  pmc_times = 8,
+  pmc_omegas = 9,
+  pmc_exact = 10,
+  pmc_input_info = 11,
 };
 
 typedef bool (*mexTypeCheckFunction)(const mxArray*);
@@ -65,6 +69,10 @@ const std::map<OUTPUT_PARAMS, mexTypeCheckFunction> OUTPUT_PARMS_MAP{
     {OUTPUT_PARAMS::maxclique, nullptr},
     {OUTPUT_PARAMS::rotation_inliers, nullptr},
     {OUTPUT_PARAMS::translation_inliers, nullptr},
+    {OUTPUT_PARAMS::pmc_times, nullptr},
+    {OUTPUT_PARAMS::pmc_omegas, nullptr},
+    {OUTPUT_PARAMS::pmc_exact, nullptr},
+    {OUTPUT_PARAMS::pmc_input_info, nullptr},
 };
 
 /**
@@ -104,6 +112,10 @@ const std::map<OUTPUT_PARAMS, mexTypeCheckFunction> OUTPUT_PARMS_MAP{
  * - maxclique is the vector of indices of the largest set of consistent inliers found by MCIS.
  * - rotation_inliers is the vector of indices of inliers after R estimation.
  * - translation_inliers is the vector of indices of inliers after t estimation.
+ * - pmc_times is a vector of [ heu, exact ] times taken for each PMC step.
+ * - pmc_omegas is a vector of [ heu, exact ] clique sizes returned by each PMC step.
+ * - pmc_exact is a flag that indicates if PMC exact ran / was needed after Heu step.
+ * - pmc_input_info is a vector of [ |V|, |E|, density ] stats about input graph.
  *
  * [1] H. Yang, J. Shi, and L. Carlone, “TEASER: Fast and Certifiable Point Cloud Registration,”
  * arXiv:2001.07715 [cs, math], Jan. 2020.
@@ -299,4 +311,26 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
           [](int x){ return x+1; }); // for matlab 1-based indexing
   plhs[toUType(OUTPUT_PARAMS::translation_inliers)] = mxCreateDoubleMatrix(1, tidx.size(), mxREAL);
   memcpy(mxGetData(plhs[toUType(OUTPUT_PARAMS::translation_inliers)]), &tidx[0], tidx.size()*sizeof(double));
+
+  //
+  // PMC solution info
+  //
+
+  // PMC times - [ Heu, Exact ]
+  std::vector<double> pmctvec = { solution.pmcinfo.t_heu, solution.pmcinfo.t_exact };
+  plhs[toUType(OUTPUT_PARAMS::pmc_times)] = mxCreateDoubleMatrix(1, pmctvec.size(), mxREAL);
+  memcpy(mxGetData(plhs[toUType(OUTPUT_PARAMS::pmc_times)]), &pmctvec[0], pmctvec.size()*sizeof(double));
+
+  // PMC omegas - [ Heu, Exact ]
+  std::vector<double> pmcomegas = { static_cast<double>(solution.pmcinfo.omega_heu), static_cast<double>(solution.pmcinfo.omega_exact) };
+  plhs[toUType(OUTPUT_PARAMS::pmc_omegas)] = mxCreateDoubleMatrix(1, pmcomegas.size(), mxREAL);
+  memcpy(mxGetData(plhs[toUType(OUTPUT_PARAMS::pmc_omegas)]), &pmcomegas[0], pmcomegas.size()*sizeof(double));
+
+  // PMC exact flag
+  plhs[toUType(OUTPUT_PARAMS::pmc_exact)] = mxCreateDoubleScalar(((solution.pmcinfo.exact_ran)?1.0:0.0));
+
+  // PMC info about input graph - [ |V|, |E|, density ]
+  std::vector<double> pmcinputinfo = { static_cast<double>(solution.pmcinfo.num_vertices), static_cast<double>(solution.pmcinfo.num_edges), solution.pmcinfo.density };
+  plhs[toUType(OUTPUT_PARAMS::pmc_input_info)] = mxCreateDoubleMatrix(1, pmcinputinfo.size(), mxREAL);
+  memcpy(mxGetData(plhs[toUType(OUTPUT_PARAMS::pmc_input_info)]), &pmcinputinfo[0], pmcinputinfo.size()*sizeof(double));
 }

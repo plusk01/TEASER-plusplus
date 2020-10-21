@@ -39,6 +39,9 @@ struct RegistrationSolution {
   double t_rotation;
   double t_translation;
 
+  // PMC solution info
+  MaxCliqueSolver::Info pmcinfo;
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 

@@ -508,6 +508,7 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
     std::sort(max_clique_.begin(), max_clique_.end());
     t2 = std::chrono::high_resolution_clock::now();
     solution_.t_mcis = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
+    solution_.pmcinfo = clique_solver.getSolutionInfo();
     TEASER_DEBUG_INFO_MSG("Max Clique of scale estimation inliers: ");
 #ifndef NDEBUG
     std::copy(max_clique_.begin(), max_clique_.end(), std::ostream_iterator<int>(std::cout, " "));

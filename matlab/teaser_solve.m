@@ -1,4 +1,4 @@
-function [s, R, t, time_taken, inlier_graph, maxclique, rin, tin] = teaser_solve(src, dst, varargin)
+function [s, R, t, time_taken, inlier_graph, maxclique, rin, tin, pmcinfo] = teaser_solve(src, dst, varargin)
 %TEASER_SOLVE MATLAB Wrapper for using C++ implementation of TEASER to
 %solve point cloud registration problems.
 %
@@ -36,6 +36,10 @@ function [s, R, t, time_taken, inlier_graph, maxclique, rin, tin] = teaser_solve
 %   - maxclique is the vector of indices of the largest set of consistent inliers found by MCIS.
 %   - rotation_inliers is the vector of indices of inliers after R estimation.
 %   - translation_inliers is the vector of indices of inliers after t estimation.
+%   - pmc_times is a vector of [ heu, exact ] times taken for each PMC step.
+%   - pmc_omegas is a vector of [ heu, exact ] clique sizes returned by each PMC step.
+%   - pmc_exact is a flag that indicates if PMC exact ran / was needed after Heu step.
+%   - pmc_input_info is a vector of [ |V|, |E|, density ] stats about input graph.
 % 
 %   For more information, please refer to [1]
 %
@@ -74,9 +78,22 @@ addParameter(params,'KCoreHeuThreshold', 0.5, ...
     @(x) isnumeric(x) && isscalar(x));
 parse(params, varargin{:});
 
-[s, R, t, time_taken, inlier_graph, maxclique, rin, tin] = teaser_solve_mex(src, dst, params.Results.Cbar2, ...
+[s, R, t, time_taken, inlier_graph, maxclique, rin, tin,...
+pmc_times, pmc_omegas, pmc_exact, pmc_input_info]...
+    = teaser_solve_mex(src, dst, params.Results.Cbar2, ...
         params.Results.NoiseBound, params.Results.EstimateScaling, ...
         params.Results.RotationEstimationAlgorithm, params.Results.RotationGNCFactor, ...
         params.Results.RotationMaxIterations, params.Results.RotationCostThreshold, ...
         params.Results.InlierSelectionAlgorithm, params.Results.KCoreHeuThreshold);
+
+% pack pmc info into struct
+pmcinfo.t_heu = pmc_times(1);
+pmcinfo.omega_heu = pmc_omegas(1);
+pmcinfo.t_exact = pmc_times(2);
+pmcinfo.omega_exact = pmc_omegas(2);
+pmcinfo.exact_ran = pmc_exact;
+pmcinfo.num_vertices = pmc_input_info(1);
+pmcinfo.num_edges = pmc_input_info(2);
+pmcinfo.density = pmc_input_info(3);
+
 end

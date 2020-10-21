@@ -249,6 +249,43 @@ public:
     double time_limit = 3600;
   };
 
+  /**
+   * Information about the PMC solution
+   */
+  struct Info {
+    /**
+     * Indicates if PMC exact ran or not.
+     * If false, but PMC_EXACT expected: PMC heuristic found max clique.
+     */
+    bool exact_ran = false;
+
+    /**
+     * Timing of PMC heuristic only (in seconds)
+     */
+    double t_heu;
+
+    /**
+     * Clique size found by PMC heuristic
+     */
+    int omega_heu;
+
+    /**
+     * Timing of PMC exact only (in seconds)
+     */
+    double t_exact = 0;
+
+    /**
+     * Clique size found by PMC exact
+     */
+    int omega_exact = 0;
+
+    /**
+     * Input graph info from PMC
+     */
+    int num_vertices, num_edges;
+    double density; // |E| / ( |V|(|V|-1)/2 )
+  };
+
   MaxCliqueSolver() = default;
 
   MaxCliqueSolver(Params params) : params_(params){};
@@ -261,9 +298,16 @@ public:
    */
   std::vector<int> findMaxClique(Graph graph);
 
+  /**
+   * Returns solution info from max clique solver
+   * @return Info struct
+   */
+  Info getSolutionInfo() const { return solninfo_; }
+
 private:
   Graph graph_;
   Params params_;
+  Info solninfo_;
 };
 
 } // namespace teaser

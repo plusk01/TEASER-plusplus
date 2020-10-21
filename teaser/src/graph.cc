@@ -7,6 +7,7 @@
  */
 
 #include <iostream>
+#include <chrono>
 
 #include "teaser/graph.h"
 #include "pmc/pmc.h"
@@ -63,6 +64,11 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
   TEASER_DEBUG_INFO_MSG("Max core number: " << max_core);
   TEASER_DEBUG_INFO_MSG("Num vertices: " << vertices.size());
 
+  // capture some info about the input graph
+  solninfo_.num_vertices = G.num_vertices();
+  solninfo_.num_edges = G.num_edges();
+  solninfo_.density = G.density();
+
   // check for k-core heuristic threshold
   // check whether threshold equals 1 to short circuit the comparison
   if (params_.solver_mode == CLIQUE_SOLVER_MODE::KCORE_HEU &&
@@ -89,9 +95,14 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
   // lower-bound of max clique
   if (in.lb == 0 && in.heu_strat != "0") { // skip if given as input
     const auto old_buffer = std::cout.rdbuf(nullptr);
+    const auto t1 = std::chrono::high_resolution_clock::now();
     pmc::pmc_heu maxclique(G, in);
     in.lb = maxclique.search(G, C);
+    const auto t2 = std::chrono::high_resolution_clock::now();
+    solninfo_.t_heu = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
     std::cout.rdbuf(old_buffer);
+
+    solninfo_.omega_heu = C.size();
   }
 
   assert(in.lb != 0);
@@ -116,6 +127,7 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
     // Applications to Network Analysis,” SIAM J. Sci. Comput., vol. 37, no. 5, pp. C589–C616, Jan.
     // 2015.
     const auto old_buffer = std::cout.rdbuf(nullptr);
+    const auto t1 = std::chrono::high_resolution_clock::now();
     if (G.num_vertices() < in.adj_limit) {
       G.create_adj();
       pmc::pmcx_maxclique finder(G, in);
@@ -124,7 +136,12 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
       pmc::pmcx_maxclique finder(G, in);
       finder.search(G, C);
     }
+    const auto t2 = std::chrono::high_resolution_clock::now();
+    solninfo_.t_exact = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
     std::cout.rdbuf(old_buffer);
+
+    solninfo_.exact_ran = true;
+    solninfo_.omega_exact = C.size();
   }
 
   return C;
