@@ -33,6 +33,12 @@ struct RegistrationSolution {
   Eigen::Vector3d translation;
   Eigen::Matrix3d rotation;
 
+  // timing statistics (in seconds)
+  double t_scale;
+  double t_mcis;
+  double t_rotation;
+  double t_translation;
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 

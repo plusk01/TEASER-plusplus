@@ -8,6 +8,7 @@
 
 #include "teaser/registration.h"
 
+#include <chrono>
 #include <cmath>
 #include <functional>
 #include <iostream>
@@ -447,11 +448,14 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
    *
    * Estimate Translation
    */
+  auto t1 = std::chrono::high_resolution_clock::now();
   src_tims_ = computeTIMs(src, &src_tims_map_);
   dst_tims_ = computeTIMs(dst, &dst_tims_map_);
   TEASER_DEBUG_INFO_MSG("Starting scale solver.");
   solveForScale(src_tims_, dst_tims_);
   TEASER_DEBUG_INFO_MSG("Scale estimation complete.");
+  auto t2 = std::chrono::high_resolution_clock::now();
+  solution_.t_scale = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
 
   // Calculate Maximum Clique
   // Note: the max_clique_ vector holds the indices of original measurements that are within the
@@ -468,6 +472,10 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
       }
     }
 
+    // include the time to create the inlier graph
+    t2 = std::chrono::high_resolution_clock::now();
+    solution_.t_scale = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
+
     teaser::MaxCliqueSolver::Params clique_params;
 
     if (params_.inlier_selection_mode == INLIER_SELECTION_MODE::PMC_EXACT) {
@@ -480,9 +488,12 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
     clique_params.time_limit = params_.max_clique_time_limit;
     clique_params.kcore_heuristic_threshold = params_.kcore_heuristic_threshold;
 
+    t1 = std::chrono::high_resolution_clock::now();
     teaser::MaxCliqueSolver clique_solver(clique_params);
     max_clique_ = clique_solver.findMaxClique(inlier_graph_);
     std::sort(max_clique_.begin(), max_clique_.end());
+    t2 = std::chrono::high_resolution_clock::now();
+    solution_.t_mcis = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
     TEASER_DEBUG_INFO_MSG("Max Clique of scale estimation inliers: ");
 #ifndef NDEBUG
     std::copy(max_clique_.begin(), max_clique_.end(), std::ostream_iterator<int>(std::cout, " "));
@@ -553,9 +564,12 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
   rotation_solver_->setParams(params);
 
   // Solve for rotation
+  t1 = std::chrono::high_resolution_clock::now();
   TEASER_DEBUG_INFO_MSG("Starting rotation solver.");
   solveForRotation(pruned_src_tims_, pruned_dst_tims_);
   TEASER_DEBUG_INFO_MSG("Rotation estimation complete.");
+  t2 = std::chrono::high_resolution_clock::now();
+  solution_.t_rotation = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
 
   // Save indices of inlier TIMs from GNC rotation estimation
   for (size_t i = 0; i < rotation_inliers_mask_.cols(); ++i) {
@@ -571,10 +585,13 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
   }
 
   // Solve for translation
+  t1 = std::chrono::high_resolution_clock::now();
   TEASER_DEBUG_INFO_MSG("Starting translation solver.");
   solveForTranslation(solution_.scale * solution_.rotation * rotation_pruned_src,
                       rotation_pruned_dst);
   TEASER_DEBUG_INFO_MSG("Translation estimation complete.");
+  t2 = std::chrono::high_resolution_clock::now();
+  solution_.t_translation = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
 
   // Find the final inliers
   translation_inliers_ = utils::findNonzero<bool>(translation_inliers_mask_);
