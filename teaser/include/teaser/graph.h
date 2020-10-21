@@ -10,11 +10,17 @@
 
 #include <unordered_set>
 #include <map>
+#include <string>
 #include <vector>
 
 #include <Eigen/Core>
 
 #include "teaser/macros.h"
+
+// forward declaration for pmc
+namespace pmc {
+  class pmc_graph;
+}
 
 namespace teaser {
 
@@ -262,12 +268,12 @@ public:
     /**
      * Timing of PMC heuristic only (in seconds)
      */
-    double t_heu;
+    double t_heu = 0;
 
     /**
      * Clique size found by PMC heuristic
      */
-    int omega_heu;
+    int omega_heu = 0;
 
     /**
      * Timing of PMC exact only (in seconds)
@@ -282,8 +288,8 @@ public:
     /**
      * Input graph info from PMC
      */
-    int num_vertices, num_edges;
-    double density; // |E| / ( |V|(|V|-1)/2 )
+    int num_vertices = 0, num_edges = 0;
+    double density = 0; // |E| / ( |V|(|V|-1)/2 )
   };
 
   MaxCliqueSolver() = default;
@@ -297,6 +303,8 @@ public:
    * @return a vector of indices of cliques
    */
   std::vector<int> findMaxClique(Graph graph);
+  std::vector<int> findMaxClique(const std::string& mtxfilename);
+  // std::vector<int> findMaxClique(const Eigen::MatrixXd& graph);
 
   /**
    * Returns solution info from max clique solver
@@ -308,6 +316,8 @@ private:
   Graph graph_;
   Params params_;
   Info solninfo_;
+
+  std::vector<int> callPMC(pmc::pmc_graph& G);
 };
 
 } // namespace teaser

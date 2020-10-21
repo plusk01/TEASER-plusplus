@@ -14,11 +14,6 @@
 
 vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
 
-  // Handle deprecated field
-  if (!params_.solve_exactly) {
-    params_.solver_mode = CLIQUE_SOLVER_MODE::PMC_HEU;
-  }
-
   // Create a PMC graph from the TEASER graph
   vector<int> edges;
   vector<long long> vertices;
@@ -33,6 +28,27 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
 
   // Use PMC to calculate
   pmc::pmc_graph G(vertices, edges);
+
+  return callPMC(G);
+}
+
+vector<int> teaser::MaxCliqueSolver::findMaxClique(const std::string& mtxfilename) {
+
+  // Use PMC to read matrix market file
+  const auto old_buffer = std::cout.rdbuf(nullptr);
+  pmc::pmc_graph G(mtxfilename);
+  std::cout.rdbuf(old_buffer);
+
+  if (G.num_vertices() <= 0 || G.num_edges() == 0) return {};
+
+  return callPMC(G);
+}
+
+std::vector<int> teaser::MaxCliqueSolver::callPMC(pmc::pmc_graph& G) {
+  // Handle deprecated field
+  if (!params_.solve_exactly) {
+    params_.solver_mode = CLIQUE_SOLVER_MODE::PMC_HEU;
+  }
 
   // Prepare PMC input
   // TODO: Incorporate this to the constructor
@@ -62,7 +78,7 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
   auto max_core = G.get_max_core();
 
   TEASER_DEBUG_INFO_MSG("Max core number: " << max_core);
-  TEASER_DEBUG_INFO_MSG("Num vertices: " << vertices.size());
+  TEASER_DEBUG_INFO_MSG("Num vertices: " << G.num_vertices());
 
   // capture some info about the input graph
   solninfo_.num_vertices = G.num_vertices();
@@ -74,7 +90,7 @@ vector<int> teaser::MaxCliqueSolver::findMaxClique(teaser::Graph graph) {
   if (params_.solver_mode == CLIQUE_SOLVER_MODE::KCORE_HEU &&
       params_.kcore_heuristic_threshold != 1 &&
       max_core > static_cast<int>(params_.kcore_heuristic_threshold *
-                                  static_cast<double>(all_vertices.size()))) {
+                                  static_cast<double>(G.num_vertices()))) {
     TEASER_DEBUG_INFO_MSG("Using K-core heuristic finder.");
     // remove all nodes with core number less than max core number
     // k_cores is a vector saving the core number of each vertex

@@ -17,6 +17,14 @@ if (Matlab_FOUND)
     add_custom_command(TARGET teaser_mex POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/*.m $<TARGET_FILE_DIR:teaser_mex>)
+
+    matlab_add_mex(
+            NAME pmc_mex
+            OUTPUT_NAME pmc_mex
+            SRC pmc_mex.cc
+            LINK_TO Eigen3::Eigen teaser_registration
+    )
+    set_target_properties(pmc_mex PROPERTIES COMPILE_FLAGS "-fvisibility=default")
 else ()
     message(WARNING "MATLAB root directory not found. Failed to build MATLAB bindings.")
     set(BUILD_MATLAB_BINDINGS OFF)
