@@ -13,8 +13,8 @@
  */
 
 #include <algorithm>
-#include <iostream>
 #include <chrono>
+#include <iostream>
 
 #include "mex.h"
 #include <Eigen/Core>
@@ -29,11 +29,22 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   // prhs   array poplulated by inputs (data passed from matlab)
 
   if (nrhs != 2 && nrhs != 3) {
-    mexErrMsgIdAndTxt("pmc:nargin", "Two or three arguments (type, data, threads) required.");
+    mexErrMsgIdAndTxt("pmc:nargin", "Two or three arguments (type, data, params) required.");
   }
 
   teaser::MaxCliqueSolver::Params params;
-  if (nrhs >= 3) params.num_threads = *mxGetPr(prhs[2]);
+  if (nrhs >= 3) {
+    if (mxIsStruct(prhs[2])) {
+      const mxArray * field = nullptr;
+      if (field = mxGetField(prhs[2], 0, "num_threads"))
+        params.num_threads = static_cast<int>(*mxGetPr(field));
+      if (field = mxGetField(prhs[2], 0, "solver_mode"))
+        params.solver_mode = static_cast<teaser::MaxCliqueSolver::CLIQUE_SOLVER_MODE>(*mxGetPr(field));
+    } else {
+      mexErrMsgIdAndTxt("pmc:params", "Third argument must be a struct.");
+    }
+  }
+
   teaser::MaxCliqueSolver clique_solver(params);
   std::vector<int> max_clique;
 
