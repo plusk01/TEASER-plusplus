@@ -311,7 +311,6 @@ public:
    */
   std::vector<int> findMaxClique(Graph graph);
   std::vector<int> findMaxClique(const std::string& mtxfilename);
-  // std::vector<int> findMaxClique(const Eigen::MatrixXd& graph);
 
   /**
    * Returns solution info from max clique solver
