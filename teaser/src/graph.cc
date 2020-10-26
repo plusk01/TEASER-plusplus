@@ -77,8 +77,11 @@ std::vector<int> teaser::MaxCliqueSolver::callPMC(pmc::pmc_graph& G) {
   vector<int> C;
 
   // upper-bound of max clique
+  auto t1 = std::chrono::high_resolution_clock::now();
   G.compute_cores();
   auto max_core = G.get_max_core();
+  auto t2 = std::chrono::high_resolution_clock::now();
+  const double t_kcore = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
 
   TEASER_DEBUG_INFO_MSG("Max core number: " << max_core);
   TEASER_DEBUG_INFO_MSG("Num vertices: " << G.num_vertices());
@@ -114,11 +117,12 @@ std::vector<int> teaser::MaxCliqueSolver::callPMC(pmc::pmc_graph& G) {
   // lower-bound of max clique
   if (in.lb == 0 && in.heu_strat != "0") { // skip if given as input
     const auto old_buffer = std::cout.rdbuf(nullptr);
-    const auto t1 = std::chrono::high_resolution_clock::now();
+    t1 = std::chrono::high_resolution_clock::now();
     pmc::pmc_heu maxclique(G, in);
     in.lb = maxclique.search(G, C);
-    const auto t2 = std::chrono::high_resolution_clock::now();
+    t2 = std::chrono::high_resolution_clock::now();
     solninfo_.t_heu = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
+    solninfo_.t_heu += t_kcore;
     std::cout.rdbuf(old_buffer);
 
     solninfo_.omega_heu = C.size();
@@ -146,7 +150,7 @@ std::vector<int> teaser::MaxCliqueSolver::callPMC(pmc::pmc_graph& G) {
     // Applications to Network Analysis,” SIAM J. Sci. Comput., vol. 37, no. 5, pp. C589–C616, Jan.
     // 2015.
     const auto old_buffer = std::cout.rdbuf(nullptr);
-    const auto t1 = std::chrono::high_resolution_clock::now();
+    t1 = std::chrono::high_resolution_clock::now();
     if (G.num_vertices() < in.adj_limit) {
       G.create_adj();
       pmc::pmcx_maxclique finder(G, in);
@@ -155,8 +159,9 @@ std::vector<int> teaser::MaxCliqueSolver::callPMC(pmc::pmc_graph& G) {
       pmc::pmcx_maxclique finder(G, in);
       finder.search(G, C);
     }
-    const auto t2 = std::chrono::high_resolution_clock::now();
+    t2 = std::chrono::high_resolution_clock::now();
     solninfo_.t_exact = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()) / 1e6;
+    solninfo_.t_exact += t_kcore;
     std::cout.rdbuf(old_buffer);
 
     solninfo_.exact_ran = true;
