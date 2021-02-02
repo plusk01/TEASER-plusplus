@@ -24,12 +24,13 @@ enum class INPUT_PARAMS : int {
   noise_bound = 3,
   estimate_scaling = 4,
   rotation_estimation_algorithm = 5,
-  rotation_gnc_factor = 6,
-  rotation_max_iterations = 7,
-  rotation_cost_threshold = 8,
-  inlier_selection_algorithm = 9,
-  kcore_heuristic_threshold = 10,
-  max_clique_threads = 11,
+  rotation_tim_graph = 6,
+  rotation_gnc_factor = 7,
+  rotation_max_iterations = 8,
+  rotation_cost_threshold = 9,
+  inlier_selection_algorithm = 10,
+  kcore_heuristic_threshold = 11,
+  max_clique_threads = 12,
 };
 
 enum class OUTPUT_PARAMS : int {
@@ -55,6 +56,7 @@ const std::map<INPUT_PARAMS, mexTypeCheckFunction> INPUT_PARMS_MAP{
     {INPUT_PARAMS::noise_bound, &isRealDoubleScalar},
     {INPUT_PARAMS::estimate_scaling, &mxIsLogicalScalar},
     {INPUT_PARAMS::rotation_estimation_algorithm, &isRealDoubleScalar},
+    {INPUT_PARAMS::rotation_tim_graph, &isRealDoubleScalar},
     {INPUT_PARAMS::rotation_gnc_factor, &isRealDoubleScalar},
     {INPUT_PARAMS::rotation_max_iterations, &isRealDoubleScalar},
     {INPUT_PARAMS::rotation_cost_threshold, &isRealDoubleScalar},
@@ -94,6 +96,9 @@ const std::map<OUTPUT_PARAMS, mexTypeCheckFunction> OUTPUT_PARMS_MAP{
  * - rotation_estimation_algorithm: a number indicating the rotation estimation method used;
  *                                  if it's 0: GNC-TLS
  *                                  if it's 1: FGR
+ * - rotation_tim_graph: a number indicating the method used;
+ *                                  0: CHAIN
+ *                                  1: COMPLETE
  * - inlier_selection_algorithm: a number indicating the  method used;
  *                                  0: PMC_EXACT
  *                                  1: PMC_HEU
@@ -159,6 +164,8 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
       static_cast<bool>(*mxGetPr(prhs[toUType(INPUT_PARAMS::estimate_scaling)]));
   auto rotation_estimation_method =
       static_cast<int>(*mxGetPr(prhs[toUType(INPUT_PARAMS::rotation_estimation_algorithm)]));
+  auto rotation_tim_graph =
+      static_cast<int>(*mxGetPr(prhs[toUType(INPUT_PARAMS::rotation_tim_graph)]));
   auto rotation_gnc_factor =
       static_cast<double>(*mxGetPr(prhs[toUType(INPUT_PARAMS::rotation_gnc_factor)]));
   auto rotation_max_iterations =
@@ -200,6 +207,27 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
     TEASER_DEBUG_MEX_MSG("Rotation estimation method given does not exist. Use GNC-TLS instead.\n");
     params.rotation_estimation_algorithm =
         teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
+    break;
+  }
+  }
+
+  switch (rotation_tim_graph) {
+  case 0: { // CHAIN
+    TEASER_DEBUG_MEX_MSG("Use CHAIN for rotation TIM graph.\n");
+    params.rotation_tim_graph =
+        teaser::RobustRegistrationSolver::INLIER_GRAPH_FORMULATION::CHAIN;
+    break;
+  }
+  case 1: { // COMPLETE
+    TEASER_DEBUG_MEX_MSG("Use COMPLETE for rotation TIM graph.\n");
+    params.rotation_tim_graph =
+        teaser::RobustRegistrationSolver::INLIER_GRAPH_FORMULATION::COMPLETE;
+    break;
+  }
+  default: {
+    TEASER_DEBUG_MEX_MSG("Rotation TIM graph method given does not exist. Use CHAIN instead.\n");
+    params.rotation_tim_graph =
+        teaser::RobustRegistrationSolver::INLIER_GRAPH_FORMULATION::CHAIN;
     break;
   }
   }
